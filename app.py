@@ -52,7 +52,7 @@ class OpenAIService:
     
     def extract_text_from_image(self, base64_image: str) -> str:
         """Extrae texto de una imagen usando GPT-4 Vision"""
-        response = openai.ChatCompletion.create(
+        response = openai.chat.completions.create(
             model=self.config.OCR_MODEL,
             messages=[
                 {
@@ -85,7 +85,7 @@ class OpenAIService:
         corrected_text = ""
         
         for chunk in chunks:
-            response = openai.ChatCompletion.create(
+            response = openai.chat.completions.create(
                 model=self.config.CORRECTION_MODEL,
                 messages=[
                     {
@@ -105,7 +105,7 @@ class OpenAIService:
 
     def extract_junta_location(self, text: str) -> str:
         """Extrae la ubicación de la Junta Regional del texto"""
-        response = openai.ChatCompletion.create(
+        response = openai.chat.completions.create(
             model=self.config.CORRECTION_MODEL,
             messages=[
                 {
@@ -125,7 +125,7 @@ class OpenAIService:
 
     def extract_analysis_and_conclusions(self, text: str) -> str:
         """Extrae el análisis y conclusiones de la Junta Regional"""
-        response = openai.ChatCompletion.create(
+        response = openai.chat.completions.create(
             model=self.config.CORRECTION_MODEL,
             messages=[
                 {
@@ -150,7 +150,7 @@ class OpenAIService:
 
     def extract_medical_concepts(self, text: str) -> str:
         """Extrae los conceptos médicos del texto"""
-        response = openai.ChatCompletion.create(
+        response = openai.chat.completions.create(
             model=self.config.CORRECTION_MODEL,
             messages=[
                 {
@@ -174,7 +174,7 @@ class OpenAIService:
 
     def extract_recurring_name(self, text: str) -> str:
         """Extrae el nombre de la persona que interpone el recurso"""
-        response = openai.ChatCompletion.create(
+        response = openai.chat.completions.create(
             model=self.config.CORRECTION_MODEL,
             messages=[
                 {
@@ -194,7 +194,7 @@ class OpenAIService:
 
     def extract_pcl_info(self, text: str) -> Dict:
         """Extrae toda la información relevante para el dictamen PCL"""
-        response = openai.ChatCompletion.create(
+        response = openai.chat.completions.create(
             model=self.config.CORRECTION_MODEL,
             messages=[
                 {
@@ -283,7 +283,7 @@ class OpenAIService:
 
     def process_recurring_text(self, text: str) -> str:
         """Procesa el texto del recurso de reposición"""
-        response = openai.ChatCompletion.create(
+        response = openai.chat.completions.create(
             model=self.config.CORRECTION_MODEL,
             messages=[
                 {
@@ -308,7 +308,7 @@ class OpenAIService:
 
     def extract_recurring_entity(self, text: str) -> str:
         """Extrae el nombre o entidad que presenta el recurso"""
-        response = openai.ChatCompletion.create(
+        response = openai.chat.completions.create(
             model=self.config.CORRECTION_MODEL,
             messages=[
                 {
@@ -344,7 +344,7 @@ class OpenAIService:
 
     def extract_first_opportunity_info(self, text: str) -> Dict:
         """Extrae toda la información relevante para la Calificación en primera oportunidad"""
-        response = openai.ChatCompletion.create(
+        response = openai.chat.completions.create(
             model=self.config.CORRECTION_MODEL,
             messages=[
                 {
@@ -477,7 +477,7 @@ La {tipo_entidad} {info.get('nombre_entidad', '')} le calificó una Pérdida de 
 
     def extract_first_opportunity_origin_info(self, text: str) -> Dict:
         """Extrae la información de determinación de origen en primera oportunidad"""
-        response = openai.ChatCompletion.create(
+        response = openai.chat.completions.create(
             model=self.config.CORRECTION_MODEL,
             messages=[
                 {
