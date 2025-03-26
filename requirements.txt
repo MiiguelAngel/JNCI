@@ -5,3 +5,4 @@ openai>=1.0.0
 python-docx
 python-dotenv>=0.19.0
 PyPDF2>=3.0.0
+streamlit-option-menu>=0.3.0
