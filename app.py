@@ -13,9 +13,9 @@ from streamlit_option_menu import option_menu
 
 # Configuración
 load_dotenv()
-# openai.api_key = os.getenv("OPENAI_API_KEY")
 # Obtener la clave API de los secrets de Streamlit
-client = openai.OpenAI(api_key=st.secrets["openai"]["OPENAI_API_KEY"])
+openai.api_key = os.getenv("OPENAI_API_KEY")
+#openai.api_key = st.secrets["openai"]["OPENAI_API_KEY"]
 
 @dataclass
 class Config:
@@ -54,7 +54,7 @@ class OpenAIService:
     
     def extract_text_from_image(self, base64_image: str) -> str:
         """Extrae texto de una imagen usando GPT-4 Vision"""
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model=self.config.OCR_MODEL,
             messages=[
                 {
@@ -87,7 +87,7 @@ class OpenAIService:
         corrected_text = ""
         
         for chunk in chunks:
-            response = client.chat.completions.create(
+            response = openai.ChatCompletion.create(
                 model=self.config.CORRECTION_MODEL,
                 messages=[
                     {
@@ -107,7 +107,7 @@ class OpenAIService:
 
     def extract_junta_location(self, text: str) -> str:
         """Extrae la ubicación de la Junta Regional del texto"""
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model=self.config.CORRECTION_MODEL,
             messages=[
                 {
@@ -127,7 +127,7 @@ class OpenAIService:
 
     def extract_analysis_and_conclusions(self, text: str) -> str:
         """Extrae el análisis y conclusiones de la Junta Regional"""
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model=self.config.CORRECTION_MODEL,
             messages=[
                 {
@@ -152,7 +152,7 @@ class OpenAIService:
 
     def extract_medical_concepts(self, text: str) -> str:
         """Extrae los conceptos médicos del texto"""
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model=self.config.CORRECTION_MODEL,
             messages=[
                 {
@@ -176,7 +176,7 @@ class OpenAIService:
 
     def extract_recurring_name(self, text: str) -> str:
         """Extrae el nombre de la persona que interpone el recurso"""
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model=self.config.CORRECTION_MODEL,
             messages=[
                 {
@@ -196,7 +196,7 @@ class OpenAIService:
 
     def extract_pcl_info(self, text: str) -> Dict:
         """Extrae toda la información relevante para el dictamen PCL"""
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model=self.config.CORRECTION_MODEL,
             messages=[
                 {
@@ -285,7 +285,7 @@ class OpenAIService:
 
     def process_recurring_text(self, text: str) -> str:
         """Procesa el texto del recurso de reposición"""
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model=self.config.CORRECTION_MODEL,
             messages=[
                 {
@@ -310,7 +310,7 @@ class OpenAIService:
 
     def extract_recurring_entity(self, text: str) -> str:
         """Extrae el nombre o entidad que presenta el recurso"""
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model=self.config.CORRECTION_MODEL,
             messages=[
                 {
@@ -346,7 +346,7 @@ class OpenAIService:
 
     def extract_first_opportunity_info(self, text: str) -> Dict:
         """Extrae toda la información relevante para la Calificación en primera oportunidad"""
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model=self.config.CORRECTION_MODEL,
             messages=[
                 {
@@ -479,7 +479,7 @@ La {tipo_entidad} {info.get('nombre_entidad', '')} le calificó una Pérdida de 
 
     def extract_first_opportunity_origin_info(self, text: str) -> Dict:
         """Extrae la información de determinación de origen en primera oportunidad"""
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model=self.config.CORRECTION_MODEL,
             messages=[
                 {
