@@ -14,8 +14,8 @@ from streamlit_option_menu import option_menu
 # Configuración
 load_dotenv()
 # Obtener la clave API de los secrets de Streamlit
-openai.api_key = os.getenv("OPENAI_API_KEY")
-#openai.api_key = st.secrets["openai"]["OPENAI_API_KEY"]
+# openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key = st.secrets["openai"]["OPENAI_API_KEY"]
 
 @dataclass
 class Config:
