@@ -372,14 +372,38 @@ class OpenAIService:
                         "rol_laboral": "string",
                         "pcl_total": "string",
                         "origen": "string",
-                        "fecha_estructuracion": "string"
+                        "fecha_estructuracion": "string",
+                        "conceptos_medicos": [
+                            {
+                                "especialidad": "string (ej: ortopedia, fisiatría)",
+                                "concepto": "string (texto del concepto)",
+                                "fecha": "string (fecha de la historia clínica)",
+                                "nombre_historia": "string (nombre de la historia clínica)"
+                            }
+                        ],
+                        "pruebas_especificas": [
+                            {
+                                "tipo": "string (ej: RNM, electromiografía)",
+                                "resultado": "string (texto del resultado)",
+                                "fecha": "string (fecha de la historia clínica)",
+                                "nombre_historia": "string (nombre de la historia clínica)"
+                            }
+                        ]
                     }
                     Sigue estas reglas:
                     1. Para diagnósticos: combina diagnóstico + diagnóstico específico + lateralidad
                     2. Para deficiencias: extrae nombre y porcentaje total
                     3. Para entidad: identifica tipo (EPS/ARL/AFP) y nombre en mayúsculas
-                    4. Si algún campo no se encuentra, déjalo como null
-                    5. Si el diagnóstico contiene abreviaturas, como 'L4-L5', 'C3-C4', o similares, deben aparecer en mayúsculas."""
+                    4. Para conceptos médicos: 
+                       - Extrae la especialidad y el concepto completo
+                       - Extrae la fecha de la historia clínica
+                       - Extrae el nombre de la historia clínica
+                    5. Para pruebas específicas:
+                       - Extrae el tipo de prueba y su resultado
+                       - Extrae la fecha de la historia clínica
+                       - Extrae el nombre de la historia clínica
+                    6. Si algún campo no se encuentra, déjalo como null
+                    7. Si el diagnóstico contiene abreviaturas, como 'L4-L5', 'C3-C4', o similares, deben aparecer en mayúsculas."""
                 },
                 {
                     "role": "user",
@@ -406,6 +430,30 @@ class OpenAIService:
             diagnostico += f" como de origen {d['origen'].lower()}"
             diagnosticos.append(diagnostico)
         
+        # Formatear conceptos médicos
+        conceptos_medicos = []
+        if info.get("conceptos_medicos"):
+            for c in info["conceptos_medicos"]:
+                concepto = f"Concepto de {c['especialidad'].lower()}"
+                if c.get("fecha"):
+                    concepto += f" del {c['fecha']}"
+                concepto += f": {c['concepto']}"
+                if c.get("nombre_historia"):
+                    concepto += f"\nNombre de la historia clínica: {c['nombre_historia']}"
+                conceptos_medicos.append(concepto)
+        
+        # Formatear pruebas específicas
+        pruebas_especificas = []
+        if info.get("pruebas_especificas"):
+            for p in info["pruebas_especificas"]:
+                prueba = f"{p['tipo']}"
+                if p.get("fecha"):
+                    prueba += f" del {p['fecha']}"
+                prueba += f": {p['resultado']}"
+                if p.get("nombre_historia"):
+                    prueba += f"\nNombre de la historia clínica: {p['nombre_historia']}"
+                pruebas_especificas.append(prueba)
+        
         # Formatear tipo de entidad
         tipo_entidad = {
             "EPS": "Entidad Prestadora de Salud",
@@ -416,6 +464,14 @@ class OpenAIService:
         template = f"""Calificación en primera oportunidad:
 
 La {tipo_entidad} {info.get('nombre_entidad', '')} le calificó una Pérdida de Capacidad Laboral (PCL) de {info.get('pcl_total', '')}%, de origen {info.get('origen', '').lower()}, con fecha de estructuración {info.get('fecha_estructuracion', '')}. La calificación de PCL emitida se desglosa así: Deficiencia: {info.get('deficiencia_total', '')}%, Rol laboral/ocupacional y otras áreas ocupacionales: {info.get('rol_laboral', '')}%. Las deficiencias calificadas fueron: {deficiencias}. Diagnósticos: {', '.join(diagnosticos)}."""
+
+        # Agregar conceptos médicos si existen
+        if conceptos_medicos:
+            template += f"\n\nConceptos médicos:\n" + "\n".join(conceptos_medicos)
+
+        # Agregar pruebas específicas si existen
+        if pruebas_especificas:
+            template += f"\n\nPruebas específicas:\n" + "\n".join(pruebas_especificas)
 
         return template
 
@@ -437,6 +493,22 @@ La {tipo_entidad} {info.get('nombre_entidad', '')} le calificó una Pérdida de 
                                 "lateralidad": "string (solo si aparece textualmente: derecho, izquierdo, bilateral)",
                                 "origen": "string (debe ser exactamente 'Enfermedad común' o 'Enfermedad laboral')"
                             }
+                        ],
+                        "conceptos_medicos": [
+                            {
+                                "especialidad": "string (ej: ortopedia, fisiatría)",
+                                "concepto": "string (texto del concepto)",
+                                "fecha": "string (fecha de la historia clínica)",
+                                "nombre_historia": "string (nombre de la historia clínica)"
+                            }
+                        ],
+                        "pruebas_especificas": [
+                            {
+                                "tipo": "string (ej: RNM, electromiografía)",
+                                "resultado": "string (texto del resultado)",
+                                "fecha": "string (fecha de la historia clínica)",
+                                "nombre_historia": "string (nombre de la historia clínica)"
+                            }
                         ]
                     }
                     
@@ -448,7 +520,17 @@ La {tipo_entidad} {info.get('nombre_entidad', '')} le calificó una Pérdida de 
                        - Primera letra mayúscula, resto en minúsculas
                        - Incluye lateralidad SOLO si aparece textualmente
                        - El origen debe ser exactamente "Enfermedad común" o "Enfermedad laboral"
-                    4. Si no puedes identificar algún campo con certeza, déjalo como null"""
+                    4. Para conceptos médicos:
+                       - Extrae la especialidad y el concepto completo
+                       - Extrae la fecha de la historia clínica
+                       - Extrae el nombre de la historia clínica
+                       - Busca en secciones como "CONCEPTOS MÉDICOS" o "CONCEPTO DE ESPECIALISTA"
+                    5. Para pruebas específicas:
+                       - Extrae el tipo de prueba y su resultado
+                       - Extrae la fecha de la historia clínica
+                       - Extrae el nombre de la historia clínica
+                       - Busca en secciones como "PRUEBAS ESPECÍFICAS" o "EXÁMENES PARACLÍNICOS"
+                    6. Si no puedes identificar algún campo con certeza, déjalo como null"""
                 },
                 {
                     "role": "user",
@@ -493,10 +575,42 @@ La {tipo_entidad} {info.get('nombre_entidad', '')} le calificó una Pérdida de 
             diagnosticos_str = ", ".join(diagnosticos)
             partes_diagnosticos.append(f"{diagnosticos_str} como de origen {origen.lower()}")
         
+        # Formatear conceptos médicos
+        conceptos_medicos = []
+        if info.get("conceptos_medicos"):
+            for c in info["conceptos_medicos"]:
+                concepto = f"Concepto de {c['especialidad'].lower()}"
+                if c.get("fecha"):
+                    concepto += f" del {c['fecha']}"
+                concepto += f": {c['concepto']}"
+                if c.get("nombre_historia"):
+                    concepto += f"\nNombre de la historia clínica: {c['nombre_historia']}"
+                conceptos_medicos.append(concepto)
+        
+        # Formatear pruebas específicas
+        pruebas_especificas = []
+        if info.get("pruebas_especificas"):
+            for p in info["pruebas_especificas"]:
+                prueba = f"{p['tipo']}"
+                if p.get("fecha"):
+                    prueba += f" del {p['fecha']}"
+                prueba += f": {p['resultado']}"
+                if p.get("nombre_historia"):
+                    prueba += f"\nNombre de la historia clínica: {p['nombre_historia']}"
+                pruebas_especificas.append(prueba)
+        
         # Unir todo en la plantilla final
         template = f"""Calificación en primera oportunidad:
 
 La {tipo_entidad} {info['nombre_entidad']} calificó las patologías: {'; '.join(partes_diagnosticos)}."""
+
+        # Agregar conceptos médicos si existen
+        if conceptos_medicos:
+            template += f"\n\nConceptos médicos:\n" + "\n".join(conceptos_medicos)
+
+        # Agregar pruebas específicas si existen
+        if pruebas_especificas:
+            template += f"\n\nPruebas específicas:\n" + "\n".join(pruebas_especificas)
         
         return template
 
